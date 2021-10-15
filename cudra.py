@@ -1,3 +1,8 @@
+import subprocess
+import time
+
+import datetime
+import pynvml
 
 class cudra(object):
     def __init__(self, gpu_ids, sec):
