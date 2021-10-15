@@ -15,15 +15,16 @@ class cudra(object):
             handler.append((i, pynvml.nvmlDeviceGetHandleByIndex(i)))
         self.handler = handler
 
+        self.lt_process = list()
+
     def run(self, script: str, arguments: list(), p=False):
         self.script = script
 
         cnt = 0
         while cnt < len(arguments):
             empty_gpus = list()
-
             for idx, handle in self.handler:
-                process = pynvml.nvmlDeviceGetComputeRunningProcesses_v2(handle)
+                process = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
                 if len(process) == 0:
                     empty_gpus.append(idx)
             if len(empty_gpus) > 0:
@@ -31,7 +32,7 @@ class cudra(object):
                     argument = arguments[cnt]
                     cmd = (
                         f"CUDA_VISIBLE_DEVICES={gpu}",
-                        f"python",
+                        f"exec python",
                         script,
                     )
                     for key, value in argument.items():
@@ -43,6 +44,7 @@ class cudra(object):
                     process = subprocess.Popen(
                         " ".join(cmd), shell=True, text=True, start_new_session=True
                     )
+                    self.lt_process.append(process)
 
                     cnt += 1
 
@@ -55,5 +57,9 @@ class cudra(object):
             # result = process.communicate()
             time.sleep(self.sec)
 
+
     def __del__(self):
         pynvml.nvmlShutdown()
+        for p in self.lt_process:
+            p.kill()
+            
