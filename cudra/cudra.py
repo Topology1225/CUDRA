@@ -21,7 +21,7 @@ class cudra(object):
         self.script = script
 
         cnt = 0
-        while cnt < len(arguments):
+        while True:
             empty_gpus = list()
             for idx, handle in self.handler:
                 process = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
@@ -54,12 +54,18 @@ class cudra(object):
             else:
                 pass
 
-            # result = process.communicate()
+            if cnt >= len(arguments):
+                break
+
+            
             time.sleep(self.sec)
-
-
+        
+        for p in self.lt_process:
+            p.communicate()
+        
     def __del__(self):
         pynvml.nvmlShutdown()
         for p in self.lt_process:
             p.kill()
+
             
